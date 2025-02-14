@@ -16,6 +16,8 @@ namespace Air_fight_simulator
         public int Y { get; private set; }
         public int MaxHP { get; private set; }
         public int Speed { get; private set; }
+        public int PossibleMoveX { get; private set; }
+        public int PossibleMoveY { get; private set; }
         public string Rotation
         {
             get
@@ -57,6 +59,16 @@ namespace Air_fight_simulator
         public override string ToString()
         {
             return $"Name: {Name},X: {X},Y: {abc[Y]},HP: {CurrrentHP},Speed {Speed},";
+        }
+
+        public void CalcutePossibleMoves()
+        {
+            int possibleX = 0;
+            int possibleY = 0;
+            for (int i = 1; i <= Speed; i++)
+            {
+                
+            }
         }
     }
 }
