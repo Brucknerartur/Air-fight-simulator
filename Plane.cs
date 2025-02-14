@@ -56,7 +56,7 @@ namespace Air_fight_simulator
 
         public override string ToString()
         {
-            return $"Name: {Name} \n X: {X} \n Y: {abc[Y]} \n HP: {CurrrentHP} \n Speed {Speed}";
+            return $"Name: {Name},X: {X},Y: {abc[Y]},HP: {CurrrentHP},Speed {Speed},";
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace Air_fight_simulator
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Air_fight_simulator
 {
     // ← → ↑ ↓
     internal class Program
@@ -8,42 +10,94 @@
         static List<Plane> redplanes = new List<Plane>();
         static List<AntiAir> antiAirs = new List<AntiAir>();
         static List<Weapon> weapons = new List<Weapon>(); 
-        static List<string> menuOptions = new List<string>() {"Exit", "Move"};
+        static List<string> menuOptions = new List<string>() {"Surrender", "Move"};
         static int width = 30;
         static int height = 30;
         static string fasz = new string(' ', Console.WindowWidth / 2);
+        static string turn = "blue";
 
         static void Main(string[] args)
         {
+            Console.OutputEncoding = System.Text.Encoding.UTF8;
+            Console.WindowWidth = 200;
+            Console.WindowHeight = 40;
             Console.ForegroundColor = ConsoleColor.White;
-            Plane tesztRepülő = new Plane("Repulo", 10, 5, "bottom", 10, 5);
-            blueplanes.Add(tesztRepülő);
-            blueplanes.Add(new Plane("Repulo2", 10, 5, "bottom", 10, 5));
 
-            Plane tesztRepülő2 = new Plane("Repulo", 20, 20, "top", 10, 5);
-            redplanes.Add(tesztRepülő2);
+
+            blueplanes.Add(new Plane("KékRepulo", 0, 0, "bottom", 10, 5));
+
+            blueplanes.Add(new Plane("KékRepulo2", 1, 0, "bottom", 10, 5));
+
+            redplanes.Add(new Plane("PirosRepulo", 20, 20, "top", 10, 5));
+
+
             int answer = -1;
             while (0 > answer || menuOptions.Count <= answer)
             {
-                Console.Clear();
-                DisplayBattlefield(width, height);
-                WriteInformation();
-                answer = DisplayMenu();
+                RefreshScreen();
+                answer = DisplayMenu(menuOptions);
             }
             switch (answer)
             {
                 case 0: return;
-                case 1: break;
+                case 1:
+                    
+                    SelectPlane();
+                    break ;
+            }
+            if (turn == "blue")
+            {
+                turn = "red";
+            }
+            else { turn = "blue"; }
+        }
+
+        static void RefreshScreen()
+        {
+            Console.Clear();
+            DisplayBattlefield(width, height);
+            WriteInformation();
+        }
+
+        static int SelectPlane()
+        {
+            if(turn == "blue")
+            {
+                List<string> planeDatas = new List<string>();
+                for (int i = 0; i < blueplanes.Count; i++)
+                {
+                    string[] data = blueplanes[i].ToString().Split(",");
+                    planeDatas.Add(data[0] + " " + data[1] + " " +data[2]);
+                }
+                RefreshScreen();
+                return DisplayMenu(planeDatas);
+            }
+            else
+            {
+                List<string> planeDatas = new List<string>();
+                for (int i = 0; i < redplanes.Count; i++)
+                {
+                    string[] data = redplanes[i].ToString().Split(",");
+                    planeDatas.Add(data[0] + " " + data[1] + " " + data[2]);
+                }
+                RefreshScreen();
+                return DisplayMenu(planeDatas);
             }
         }
 
-        static int DisplayMenu()
+        static void MovePlane(Plane plane, int newX, int newY, string rotaion)
+        {
+            plane.Move(newX, newY, rotaion);
+            RefreshScreen();
+        }
+
+        static int DisplayMenu(List<string> options)
         {
             Console.WriteLine();
             Console.SetCursorPosition(0, height + 2);
-            for (int i = 0; i < menuOptions.Count; i++)
+            for (int i = 0; i < options.Count; i++)
             {
-                WriteCentered($"{i} - {menuOptions[i]}");
+                WriteCentered($"{i} - {options[i]}");
             }
             WriteCentered("Answer: ");
             try
@@ -70,19 +124,21 @@
                 if (i + 1 <= blueplanes.Count ) if( blueplanes[i].X == x && blueplanes[i].Y == y)
                 {
                     BluePlaneRotaion(i);
+                    return;
                 }
-                else if (i + 1 <= redplanes.Count )
+
+            }
+            for (int i = 0; i < redplanes.Count; i++)
+            {
+                if (i + 1 <= redplanes.Count) if (redplanes[i].X == x && redplanes[i].Y == y)
                 {
-                    if (redplanes[i].X == x && redplanes[i].Y == y)
-                    { 
-                        RedPlaneRotation(i);
-                    }
-                }
-                else
-                {
-                    Console.Write("[ ]");
+                    RedPlaneRotation(i);
+                    return;
                 }
             }
+
+             Console.Write("[ ]");
+
         }
 
         static void BluePlaneRotaion(int index)
@@ -185,10 +241,23 @@
             
             for (int i = 0; i < blueplanes.Count; i++)
             {
-                for (global::System.Int32 j = 0; j < blueplanes[i].ToString().Split(",").Length; j++)
+                string[] data = blueplanes[i].ToString().Split(",");
+                for (global::System.Int32 j = 0; j < data.Length; j++)
                 {
-                    Console.SetCursorPosition(1, 10);
-                    Console.Write(blueplanes[i].ToString().Split(",")[j]);
+                    Console.SetCursorPosition(10, 5 + j + 1 + i * data.Length + 1);
+                    Console.Write(data[j]);
+                    Console.WriteLine();
+                }
+            }
+
+            for (int i = 0; i < redplanes.Count; i++)
+            {
+                string[] data = redplanes[i].ToString().Split(",");
+                for (global::System.Int32 j = 0; j < data.Length; j++)
+                {
+                    Console.SetCursorPosition(170, 5 + j + 1 + i * data.Length + 1);
+                    Console.Write(data[j]);
+                    Console.WriteLine();
                 }
             }
         }
