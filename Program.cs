@@ -10,16 +10,19 @@ namespace Air_fight_simulator
         static List<Plane> redplanes = new List<Plane>();
         static List<AntiAir> antiAirs = new List<AntiAir>();
         static List<Weapon> weapons = new List<Weapon>();
-        static List<string> menuOptions = new List<string>() { "Surrender", "Move" };
+        static List<string> menuOptions = new List<string>() { "Surrender", "Move", "Shoot" };
         static int width = 26;
         static int height = 26;
-        static string fasz = new string(' ', Console.WindowWidth / 2);
         static string turn = "blue";
         static int[] selectedTile = [0, 0];
         static bool endTurn = false;
         static int newX = -1;
         static int newY = -1;
         static string newRotation = string.Empty;
+        static int battlefieldLeftCoursorPos = Console.WindowWidth / 2 - width * 3 / 2;
+        static int battlefieldTopCoursorPos = 3;
+        static int activePlaneIndex = -1;
+        static int answer = -1;
         static void Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
@@ -28,14 +31,11 @@ namespace Air_fight_simulator
             Console.ForegroundColor = ConsoleColor.White;
 
 
-            blueplanes.Add(new Plane("KékRepulo", 0, 0, "bottom", 10, 5));
-
-            blueplanes.Add(new Plane("KékRepulo2", 1, 0, "right", 10, 5));
+            blueplanes.Add(new Plane("KékRepulo", 20, 10, "bottom", 10, 5));
 
             redplanes.Add(new Plane("PirosRepulo", 20, 20, "top", 10, 5));
 
 
-            int answer = -1;
             while (answer != 0)
             {
                 answer = -1;
@@ -52,7 +52,7 @@ namespace Air_fight_simulator
 
                         Move();
                         break;
-                    case -1: Console.WriteLine("HIBA"); break;//TODO HIBÁRA
+                    case -1: Console.WriteLine("HIBA"); break;
                 }
                 if (endTurn)
                 {
@@ -69,9 +69,44 @@ namespace Air_fight_simulator
             Console.Clear();
             DisplayBattlefield(width, height);
             WriteInformation();
+            if (activePlaneIndex != -1)
+            {
+                if (answer == 1)
+                {
+                    ColorPossibleMoves(blueplanes[activePlaneIndex]);
+                }
+            }
         }
 
-        static void GetMoveParams()
+        static void ColorPossibleMoves(Plane plane)
+        {
+            for (int i = 0; i < width; i++)
+            {
+                Console.SetCursorPosition(battlefieldLeftCoursorPos, battlefieldTopCoursorPos + i);
+                Console.Write(abc[i]);
+                for (int j = 0; j < height; j++)
+                {
+                    if (plane.PossibleMoveY.Contains(i))
+                    {
+                        if (plane.PossibleMoveX.Contains(j))
+                        {
+                            DrawTile(j, i,false);
+                        }
+                        else
+                        {
+                            DrawTile(j, i, true);
+                        }
+                    }
+                    else
+                    {
+                        DrawTile(j, i, true);
+                    }
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+            }
+        }
+
+        static void GetMoveParams(Plane plane)
         {
             RefreshScreen();
             Console.SetCursorPosition(0, height + 5);
@@ -83,12 +118,22 @@ namespace Air_fight_simulator
                     WriteCentered("Row: ", height + 5);
                     newY = int.Parse(Console.ReadLine());
                 }
+                if (!plane.PossibleMoveY.Contains(newY))
+                {
+                    newY = -1;
+                    GetMoveParams(plane);
+                }
 
                 if (newX == -1)
                 {
                     RefreshScreen();
                     WriteCentered("Column: ", height + 5);
                     newX = int.Parse(Console.ReadLine());
+                }
+                if (!plane.PossibleMoveX.Contains(newX))
+                {
+                    newX = -1;
+                    GetMoveParams(plane);
                 }
 
                 if (newRotation == string.Empty)
@@ -101,12 +146,12 @@ namespace Air_fight_simulator
                 if (!asd.Contains(newRotation))
                 {
                     newRotation = string.Empty;
-                    GetMoveParams();
+                    GetMoveParams(plane);
                 }
             }
             catch
             {
-                GetMoveParams();
+                GetMoveParams(plane);
             }
         }
         static void Move()
@@ -121,11 +166,15 @@ namespace Air_fight_simulator
                 }
                 RefreshScreen();
                 int index = DisplayMenu(planeDatas);
-                GetMoveParams();
+                activePlaneIndex = index;
+                blueplanes[index].CalcutePossibleMoves();
+                ColorPossibleMoves(blueplanes[index]);
+                GetMoveParams(blueplanes[index]);
                 blueplanes[index].Move(newX, newY, newRotation);
                 newX = -1;
                 newY = -1;
                 newRotation = string.Empty;
+                activePlaneIndex = -1;
             }
             else
             {
@@ -137,11 +186,15 @@ namespace Air_fight_simulator
                 }
                 RefreshScreen();
                 int index = DisplayMenu(planeDatas);
-                GetMoveParams();
+                activePlaneIndex = index;
+                redplanes[index].CalcutePossibleMoves();
+                ColorPossibleMoves(redplanes[index]);
+                GetMoveParams(redplanes[index]);
                 redplanes[index].Move(newX, newY, newRotation);
                 newX = -1;
                 newY = -1;
                 newRotation = string.Empty;
+                activePlaneIndex = -1;
             }
         }
         static void MovePlane(Plane plane, int newX, int newY, string rotaion)
@@ -175,7 +228,7 @@ namespace Air_fight_simulator
             Console.SetCursorPosition(Console.WindowWidth / 2 - text.Length / 2, line);
             Console.Write(text);
         }
-        static void DrawTile(int x, int y)
+        static void DrawTile(int x, int y, bool drawEmptyTile)
         {
             for (int i = 0; i < blueplanes.Count; i++)
             {
@@ -194,6 +247,7 @@ namespace Air_fight_simulator
                         return;
                     }
             }
+            if (!drawEmptyTile) Console.ForegroundColor = ConsoleColor.Green;
             Console.Write("[ ]");
         }
         static void DrawBluePlane(int index, int x, int y)
@@ -263,11 +317,11 @@ namespace Air_fight_simulator
             }
             for (int i = 0; i < width; i++)
             {
-                Console.SetCursorPosition(Console.WindowWidth / 2 - width * 3 / 2, i + 3);
+                Console.SetCursorPosition(battlefieldLeftCoursorPos, battlefieldTopCoursorPos + i);
                 Console.Write(abc[i]);
                 for (int j = 0; j < height; j++)
                 {
-                    DrawTile(j, i);
+                    DrawTile(j, i, true);
                 }
                 Console.WriteLine();
             }

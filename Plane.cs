@@ -16,8 +16,8 @@ namespace Air_fight_simulator
         public int Y { get; private set; }
         public int MaxHP { get; private set; }
         public int Speed { get; private set; }
-        public int PossibleMoveX { get; private set; }
-        public int PossibleMoveY { get; private set; }
+        public List<int> PossibleMoveX { get; private set; } = new List<int>();
+        public List<int> PossibleMoveY { get; private set; } = new List<int>();
         public string Rotation
         {
             get
@@ -63,12 +63,24 @@ namespace Air_fight_simulator
 
         public void CalcutePossibleMoves()
         {
-            int possibleX = 0;
-            int possibleY = 0;
-            for (int i = 1; i <= Speed; i++)
+            PossibleMoveX.Clear();
+            PossibleMoveY.Clear();
+            for (int i = 0; i < Speed * 2 + 1; i++)
             {
-                
+                for (global::System.Int32 j = 0; j < Speed * 2 + 1; j++)
+                {
+                    if (!PossibleMoveX.Contains(j + X - Speed))
+                    {
+                        PossibleMoveX.Add(j + X - Speed);
+                    }
+                    if (!PossibleMoveY.Contains(i + Y - Speed))
+                    {
+                        PossibleMoveY.Add(i + Y - Speed);
+                    }
+                }
             }
+            PossibleMoveX.Sort();
+            PossibleMoveY.Sort();
         }
     }
 }
