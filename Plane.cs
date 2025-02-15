@@ -58,7 +58,7 @@ namespace Air_fight_simulator
 
         public override string ToString()
         {
-            return $"Name: {Name},X: {X},Y: {abc[Y]},HP: {CurrrentHP},Speed {Speed},";
+            return $"Name: {Name},X: {X + 1},Y: {Y + 1},HP: {CurrrentHP},Speed {Speed},";
         }
 
         public void CalcutePossibleMoves()

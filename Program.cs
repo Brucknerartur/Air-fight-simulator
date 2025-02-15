@@ -13,7 +13,7 @@ namespace Air_fight_simulator
         static List<string> menuOptions = new List<string>() { "Surrender", "Move", "Shoot" };
         static int width = 26;
         static int height = 26;
-        static string turn = "blue";
+        static string turn = "Blue";
         static int[] selectedTile = [0, 0];
         static bool endTurn = false;
         static int newX = -1;
@@ -23,6 +23,7 @@ namespace Air_fight_simulator
         static int battlefieldTopCoursorPos = 3;
         static int activePlaneIndex = -1;
         static int answer = -1;
+        static string blank = new string(' ', Console.WindowWidth - 20);
         static void Main(string[] args)
         {
             Console.OutputEncoding = System.Text.Encoding.UTF8;
@@ -41,6 +42,7 @@ namespace Air_fight_simulator
                 answer = -1;
                 while (0 > answer || menuOptions.Count <= answer)
                 {
+                    
                     RefreshScreen();
                     answer = DisplayMenu(menuOptions);
                 }
@@ -56,17 +58,18 @@ namespace Air_fight_simulator
                 }
                 if (endTurn)
                 {
-                    if (turn == "blue")
+                    if (turn == "Blue")
                     {
-                        turn = "red";
+                        turn = "Red";
                     }
-                    else { turn = "blue"; }
+                    else { turn = "Blue"; }
                 }
             }
         }
         static void RefreshScreen()
         {
             Console.Clear();
+            WrtieTurn();
             DisplayBattlefield(width, height);
             WriteInformation();
             if (activePlaneIndex != -1)
@@ -83,7 +86,14 @@ namespace Air_fight_simulator
             for (int i = 0; i < width; i++)
             {
                 Console.SetCursorPosition(battlefieldLeftCoursorPos, battlefieldTopCoursorPos + i);
-                Console.Write(abc[i]);
+                if (10 > i + 1)
+                {
+                    Console.Write($"{i + 1} ");
+                }
+                else
+                {
+                    Console.Write(i + 1);
+                }
                 for (int j = 0; j < height; j++)
                 {
                     if (plane.PossibleMoveY.Contains(i))
@@ -105,7 +115,6 @@ namespace Air_fight_simulator
                 }
             }
         }
-
         static void GetMoveParams(Plane plane)
         {
             RefreshScreen();
@@ -117,6 +126,7 @@ namespace Air_fight_simulator
                     RefreshScreen();
                     WriteCentered("Row: ", height + 5);
                     newY = int.Parse(Console.ReadLine());
+                    newY--;
                 }
                 if (!plane.PossibleMoveY.Contains(newY))
                 {
@@ -129,6 +139,8 @@ namespace Air_fight_simulator
                     RefreshScreen();
                     WriteCentered("Column: ", height + 5);
                     newX = int.Parse(Console.ReadLine());
+                    newX--;
+
                 }
                 if (!plane.PossibleMoveX.Contains(newX))
                 {
@@ -156,7 +168,7 @@ namespace Air_fight_simulator
         }
         static void Move()
         {
-            if (turn == "blue")
+            if (turn == "Blue")
             {
                 List<string> planeDatas = new List<string>();
                 for (int i = 0; i < blueplanes.Count; i++)
@@ -215,6 +227,10 @@ namespace Air_fight_simulator
             try
             {
                 int answer = int.Parse(Console.ReadLine());
+                if (answer > options.Count)
+                {
+                    DisplayMenu(options);
+                }
                 return answer;
             }
             catch
@@ -318,7 +334,14 @@ namespace Air_fight_simulator
             for (int i = 0; i < width; i++)
             {
                 Console.SetCursorPosition(battlefieldLeftCoursorPos, battlefieldTopCoursorPos + i);
-                Console.Write(abc[i]);
+                if(10 > i + 1)
+                { 
+                    Console.Write($"{i + 1} ");
+                }
+                else 
+                {
+                    Console.Write(i + 1);
+                }
                 for (int j = 0; j < height; j++)
                 {
                     DrawTile(j, i, true);
@@ -327,7 +350,7 @@ namespace Air_fight_simulator
             }
             Console.WriteLine();
             Console.SetCursorPosition(Console.WindowWidth / 2 - width * 3 / 2, height + 3);
-            Console.Write(" ");
+            Console.Write("  ");
             for (int i = 0; i < width; i++)
             {
                 if (i < 10)
@@ -371,6 +394,19 @@ namespace Air_fight_simulator
                 }
             }
         }
-
+        static void WrtieTurn()
+        {
+            if (turn == "Blue")
+            {
+                Console.ForegroundColor = ConsoleColor.Blue;
+            }else Console.ForegroundColor = ConsoleColor.Red;
+            WriteCentered($"{turn}'s turn", 1);
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+        static void WriteMessage(string message)
+        {
+            WriteCentered(blank, 2);
+            WriteCentered(message, 2);
+        }
     }
 }
