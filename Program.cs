@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Runtime.Intrinsics.Arm;
 
 namespace Air_fight_simulator
 {
@@ -8,9 +9,10 @@ namespace Air_fight_simulator
         static string[] abc = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
         static List<Plane> blueplanes = [];
         static List<Plane> redplanes = [];
-        static List<AntiAir> antiAirs = [];
+        static List<AntiAir> blueAntiAirs = [];
         static List<Weapon> weapons = [];
-        static List<string> menuOptions = ["Surrender", "Move", "Shoot"];
+        static List<Weapon> antiAirWeapons = [];
+        static List<string> menuOptions = ["Surrender", "Move", "Shoot with Plane", "Shoot with Anti-Air"];
         static int width = 26;
         static int height = 26;
         static string turn = "Blue";
@@ -21,7 +23,7 @@ namespace Air_fight_simulator
         static string newRotation = string.Empty;
         static int battlefieldLeftCoursorPos = Console.WindowWidth / 2 - width * 3 / 2;
         static int battlefieldTopCoursorPos = 3;
-        static int activePlaneIndex = -1;
+        static int activeIndex = -1;
         static int answer = -1;
         static string blank = new string(' ', Console.WindowWidth - 20);
         static string message = "";
@@ -33,15 +35,14 @@ namespace Air_fight_simulator
             Console.ForegroundColor = ConsoleColor.White;
 
             CreateWeapons();
-
             CreatePlanes();
+            CreateAntiAirs();
 
             while (answer != 0)
             {
                 answer = -1;
                 while (0 > answer || menuOptions.Count <= answer)
                 {
-
                     RefreshScreen();
                     answer = DisplayMenu(menuOptions);
                 }
@@ -50,15 +51,21 @@ namespace Air_fight_simulator
                     case -2: break;
                     case 0: return;
                     case 1:
-                        Move();
                         endTurn = true;
+                        Move();
                         break;
                     case 2:
-                        Shoot();
                         endTurn = true;
+                        ShootPlane();
+                        break;
+                    case 3:
+                        endTurn = true;
+                        ShootAntiAir();
+                        answer = -1;
                         break;
                     case -1: Console.WriteLine("HIBA"); break;
                 }
+                activeIndex = -1;
                 if (endTurn)
                 {
                     if (turn == "Blue")
@@ -70,14 +77,67 @@ namespace Air_fight_simulator
                 }
             }
         }
-
-        private static void CreatePlanes()
-        {
-            blueplanes.Add(new Plane("KékRepulo", 7, 7, "top", 2, 5, weapons));
-
-            redplanes.Add(new Plane("PirosRepulo", 5, 5, "bottom", 2, 5, weapons));
+        static void ShootAntiAir()
+        { 
+            if(turn == "Blue")
+            {
+                List<string> antiAirData = new List<string>();
+                for (int i = 0; i < blueAntiAirs.Count; i++)
+                {
+                    string[] data = blueAntiAirs[i].ToString().Split(",");
+                    antiAirData.Add(data[0] + " " + data[1] + " " + data[2]);
+                }
+                RefreshScreen();
+                int index = DisplayMenu(antiAirData);
+                activeIndex = index;
+                ShootWithAntiAir(index, blueAntiAirs[activeIndex].X, blueAntiAirs[activeIndex].Y);
+            }
+            else
+            {
+                answer = -1;
+                Console.WriteLine("Sorry you have no Anti-Air");
+                endTurn = false;
+            }
         }
-        static void Shoot()
+        static void ShootWithAntiAir(int index, int x, int y)
+        {
+            int hitCount = 0;
+            if (turn == "Blue")
+            {
+                Weapon chosenWeapon = ChooseWeaponForAntiAir(blueAntiAirs[index]);
+                blueAntiAirs[index].CalculatePossibleATK(chosenWeapon.Range);
+                ColorPossibleMovesForAntiAir(blueAntiAirs[index]);
+                GetATKParamsForAntiAir(blueAntiAirs[index]);
+                for (global::System.Int32 j = 0; j < chosenWeapon.ATK; j++)
+                {
+                    chosenWeapon.UseAmmo(1);
+                    if (Hit(chosenWeapon))
+                    {
+                        hitCount++;
+                        for (global::System.Int32 i = 0; i < redplanes.Count; i++)
+                        {
+                            if (redplanes[i].X == newX && redplanes[i].Y == newY)
+                            {
+                                redplanes[i].GetDamaged(chosenWeapon.DMG);
+                                if (redplanes[i].X == -100 && redplanes[i].Y == -100)
+                                {
+                                    redplanes.Remove(redplanes[i]);
+                                    if (redplanes.Count == 0)
+                                    {
+                                        VictoryScreen("Blue");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                message = $"Hit {hitCount} times";
+                WriteMessage();
+                newX = -1;
+                newY = -1;
+            }
+        }
+        static void ShootPlane()
         {
             if (turn == "Blue")
             {
@@ -89,8 +149,8 @@ namespace Air_fight_simulator
                 }
                 RefreshScreen();
                 int index = DisplayMenu(planeDatas);
-                activePlaneIndex = index;
-                ShootWithPlane(index, blueplanes[activePlaneIndex].X, blueplanes[activePlaneIndex].Y);
+                activeIndex = index;
+                ShootWithPlane(index, blueplanes[activeIndex].X, blueplanes[activeIndex].Y);
             }
             if (turn == "Red")
             {
@@ -102,8 +162,8 @@ namespace Air_fight_simulator
                 }
                 RefreshScreen();
                 int index = DisplayMenu(planeDatas);
-                activePlaneIndex = index;
-                ShootWithPlane(index, redplanes[activePlaneIndex].X, redplanes[activePlaneIndex].Y);
+                activeIndex = index;
+                ShootWithPlane(index, redplanes[activeIndex].X, redplanes[activeIndex].Y);
             }
         }
         static void VictoryScreen(string winner)
@@ -182,9 +242,9 @@ namespace Air_fight_simulator
                     if (Hit(chosenWeapon))
                     {
                         hitCount++;
-                        for (global::System.Int32 i = 0; i < redplanes.Count; i++)
+                        for (global::System.Int32 i = 0; i < blueplanes.Count; i++)
                         {
-                            if (redplanes[i].X == newX && redplanes[i].Y == newY)
+                            if (blueplanes[i].X == newX && blueplanes[i].Y == newY)
                             {
                                 blueplanes[i].GetDamaged(chosenWeapon.DMG);
                                 if (blueplanes[i].X == -100 && blueplanes[i].Y == -100)
@@ -244,6 +304,44 @@ namespace Air_fight_simulator
                 GetATKParams(plane);
             }
         }
+        static void GetATKParamsForAntiAir(AntiAir antiAir)
+        {
+            RefreshScreen();
+            Console.SetCursorPosition(0, height + 5);
+            try
+            {
+                if (newY == -1)
+                {
+                    RefreshScreen();
+                    WriteCentered("Target row: ", height + 5);
+                    newY = int.Parse(Console.ReadLine());
+                    newY--;
+                }
+                if (!antiAir.PossibleMoveY.Contains(newY))
+                {
+                    newY = -1;
+                    GetATKParamsForAntiAir(antiAir);
+                }
+
+                if (newX == -1)
+                {
+                    RefreshScreen();
+                    WriteCentered("Target column: ", height + 5);
+                    newX = int.Parse(Console.ReadLine());
+                    newX--;
+
+                }
+                if (!antiAir.PossibleMoveX.Contains(newX))
+                {
+                    newX = -1;
+                    GetATKParamsForAntiAir(antiAir);
+                }
+            }
+            catch
+            {
+                GetATKParamsForAntiAir(antiAir);
+            }
+        }
         static Weapon ChooseWeapon(Plane plane)
         {
             List<string> asd = [];
@@ -255,6 +353,17 @@ namespace Air_fight_simulator
             int answer = DisplayMenu(asd);
             return plane.Weapons[answer];
         }
+        static Weapon ChooseWeaponForAntiAir(AntiAir antiair)
+        {
+            List<string> asd = [];
+            foreach (var item in antiair.Weapons)
+            {
+                asd.Add(item.ToString());
+            }
+            RefreshScreen();
+            int answer = DisplayMenu(asd);
+            return antiair.Weapons[answer];
+        }
         static void RefreshScreen()
         {
             Console.Clear();
@@ -262,12 +371,16 @@ namespace Air_fight_simulator
             DisplayBattlefield(width, height);
             WriteInformation();
             WriteMessage();
-            if (activePlaneIndex != -1)
+            if (activeIndex != -1)
             {
                 if (answer == 1 || answer == 2)
                 {
-                    if (turn == "Blue") ColorPossibleMoves(blueplanes[activePlaneIndex]);
-                    if (turn == "Red") ColorPossibleMoves(redplanes[activePlaneIndex]);
+                    if (turn == "Blue") ColorPossibleMoves(blueplanes[activeIndex]);
+                    if (turn == "Red") ColorPossibleMoves(redplanes[activeIndex]);
+                }
+                if (answer == 3)
+                {
+                    if (turn == "Blue") ColorPossibleMovesForAntiAir(blueAntiAirs[activeIndex]);
                 }
             }
         }
@@ -289,6 +402,40 @@ namespace Air_fight_simulator
                     if (plane.PossibleMoveY.Contains(i))
                     {
                         if (plane.PossibleMoveX.Contains(j))
+                        {
+                            DrawTile(j, i, false);
+                        }
+                        else
+                        {
+                            DrawTile(j, i, true);
+                        }
+                    }
+                    else
+                    {
+                        DrawTile(j, i, true);
+                    }
+                    Console.ForegroundColor = ConsoleColor.White;
+                }
+            }
+        }
+        static void ColorPossibleMovesForAntiAir(AntiAir antiAir)
+        {
+            for (int i = 0; i < width; i++)
+            {
+                Console.SetCursorPosition(battlefieldLeftCoursorPos, battlefieldTopCoursorPos + i);
+                if (10 > i + 1)
+                {
+                    Console.Write($"{i + 1} ");
+                }
+                else
+                {
+                    Console.Write(i + 1);
+                }
+                for (int j = 0; j < height; j++)
+                {
+                    if (antiAir.PossibleMoveY.Contains(i))
+                    {
+                        if (antiAir.PossibleMoveX.Contains(j))
                         {
                             DrawTile(j, i, false);
                         }
@@ -368,7 +515,7 @@ namespace Air_fight_simulator
                 }
                 RefreshScreen();
                 int index = DisplayMenu(planeDatas);
-                activePlaneIndex = index;
+                activeIndex = index;
                 blueplanes[index].CalcutePossibleMoves();
                 ColorPossibleMoves(blueplanes[index]);
                 GetMoveParams(blueplanes[index]);
@@ -376,7 +523,7 @@ namespace Air_fight_simulator
                 newX = -1;
                 newY = -1;
                 newRotation = string.Empty;
-                activePlaneIndex = -1;
+                activeIndex = -1;
             }
             else
             {
@@ -388,7 +535,7 @@ namespace Air_fight_simulator
                 }
                 RefreshScreen();
                 int index = DisplayMenu(planeDatas);
-                activePlaneIndex = index;
+                activeIndex = index;
                 redplanes[index].CalcutePossibleMoves();
                 ColorPossibleMoves(redplanes[index]);
                 GetMoveParams(redplanes[index]);
@@ -396,7 +543,7 @@ namespace Air_fight_simulator
                 newX = -1;
                 newY = -1;
                 newRotation = string.Empty;
-                activePlaneIndex = -1;
+                activeIndex = -1;
             }
             endTurn = true;
         }
@@ -414,11 +561,12 @@ namespace Air_fight_simulator
                 WriteCentered($"{i} - {options[i]}", height + i + 4);
             }
             Console.WriteLine();
-            WriteCentered("Answer: ", height + options.Count + 4);
+            WriteCentered(blank, height + options.Count + 4);
+            WriteCentered("Answer:  ", height + options.Count + 4);
             try
             {
                 int answer = int.Parse(Console.ReadLine());
-                if (answer > options.Count)
+                if (answer + 1 > options.Count)
                 {
                     DisplayMenu(options);
                 }
@@ -454,6 +602,15 @@ namespace Air_fight_simulator
                         return;
                     }
             }
+            for (int i = 0; i < blueAntiAirs.Count; i++)
+            {
+                if (i + 1 <= blueAntiAirs.Count) if (blueAntiAirs[i].X == x && blueAntiAirs[i].Y == y)
+                    {
+                        DrawBlueAntiAir(i, x, y);
+                        return;
+                    }
+
+            }
             if (!drawEmptyTile) Console.ForegroundColor = ConsoleColor.Green;
             Console.Write("[ ]");
         }
@@ -482,6 +639,12 @@ namespace Air_fight_simulator
                 Console.Write("[↑]");
 
             }
+            Console.ForegroundColor = ConsoleColor.White;
+        }
+        static void DrawBlueAntiAir(int index, int x, int y)
+        {
+            Console.ForegroundColor = ConsoleColor.Blue;
+            Console.Write("[X]");
             Console.ForegroundColor = ConsoleColor.White;
         }
         static void DrawRedPlane(int index, int x, int y)
@@ -556,8 +719,39 @@ namespace Air_fight_simulator
         }
         static void CreateWeapons()
         {
-            weapons.Add(new Weapon("Minigun", "gun", 100, 20, 10, 1, 7));
-            weapons.Add(new Weapon("Heat-seeking Rockets", "rocket", 8, 40, 2, 2, 9));
+            weapons.Add(new Weapon("COW 37 mm gun ", "gun", 100, 20, 4, 1, 7)); // 0
+            weapons.Add(new Weapon("Bordkanone BK 7,5 cannon", "gun", 30, 50, 1, 2, 9)); //1
+            weapons.Add(new Weapon("M2 Browning machine gun", "gun", 100, 25, 6, 1, 5)); //2
+            weapons.Add(new Weapon("AGM-142 Raptor", "rocket", 8, 50, 2, 3, 11)); //3
+            weapons.Add(new Weapon("AS.34 Kormoran ", "rocket", 6, 60, 2, 4, 13));//4
+            weapons.Add(new Weapon("Anti-air gun type 1", "anti-air", 50, 50, 5, 1, 7));//5
+            weapons.Add(new Weapon("Anti-air gun type 2", "anti-air", 50, 40, 5, 1, 9));//6
+        }
+        static void CreatePlanes()
+        {
+            List<Weapon> weaponsForPlanes = new List<Weapon>();
+            weaponsForPlanes.Add(weapons[0]);
+            weaponsForPlanes.Add(weapons[1]);
+            weaponsForPlanes.Add(weapons[2]);
+            weaponsForPlanes.Add(weapons[3]);
+            weaponsForPlanes.Add(weapons[4]);
+            blueplanes.Add(new Plane("A-10C Thunderbolt II", 14, 7, "bottom", 2, 7, weaponsForPlanes));
+
+            blueplanes.Add(new Plane("F-117 Nighthawk", 12, 7, "bottom", 2, 7, weaponsForPlanes));
+
+            redplanes.Add(new Plane("C-130H Hercules", 12, 20, "top", 4, 5, weaponsForPlanes));
+
+            redplanes.Add(new Plane("F-15C/D Eagle", 13, 20, "top", 4, 5, weaponsForPlanes));
+
+            redplanes.Add(new Plane("F-35A Lightning II", 14, 20, "top", 3, 6, weaponsForPlanes));
+
+        }
+        static void CreateAntiAirs()
+        {
+            List<Weapon> weaponsForAntiAirs = new List<Weapon>();
+            weaponsForAntiAirs.Add(weapons[5]);
+            blueAntiAirs.Add(new AntiAir("Oerlikon 35 mm twin cannon", 11, 10, weaponsForAntiAirs));
+            blueAntiAirs.Add(new AntiAir("Oerlikon 35 mm twin cannon", 15, 10, weaponsForAntiAirs));
 
         }
         static void WriteInformation()

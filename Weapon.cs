@@ -15,7 +15,7 @@ namespace Air_fight_simulator
         public int ATK { get; private set; }
         public int DMG {  get; private set; }
         public int Range { get; private set; }
-        public Weapon(string name,string type, int ammo, int accuracy, int atk, int dmg, int range) 
+        public Weapon(string name, string type, int ammo, int accuracy, int atk, int dmg, int range) 
         {
             Name = name;
             Type = type;
@@ -32,7 +32,7 @@ namespace Air_fight_simulator
         }
         public override string ToString()
         {
-            return $"Name: {Name}, Accuracy: {Accuracy}, ATK: {ATK}, DMG: {DMG}";
+            return $"Name: {Name}, Ammo: {Ammo}, Range: {Range}, Accuracy: {Accuracy}, ATK: {ATK}, DMG: {DMG}";
         }
     }
 }

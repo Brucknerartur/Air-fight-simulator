@@ -12,6 +12,7 @@ namespace Air_fight_simulator
         string[] abc = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
         public int HP { get; private set; }
         public string Name { get; private set; }
+
         private string _rotation = "top";
         public int X { get; private set; }
         public int Y { get; private set; }
@@ -116,7 +117,7 @@ namespace Air_fight_simulator
                 }
             }
         }
-        public void getCords(int xChange,  int yChange, int distance)
+        private void getCords(int xChange,  int yChange, int distance)
         {
             if (xChange != 0)
             {
