@@ -438,6 +438,31 @@ namespace Air_fight_simulator
                 }
             }
         }
+        static bool CheckForCollision(int x, int y)
+        {
+            foreach (Plane plane in ProgramHelpers.redplanes)
+            {
+                if (plane.X == x && plane.Y == y)
+                {
+                    return true;
+                }
+            }
+            foreach (Plane plane in ProgramHelpers.blueplanes)
+            {
+                if (plane.X == x && plane.Y == y)
+                {
+                    return true;
+                }
+            }
+            foreach (AntiAir plane in ProgramHelpers.blueAntiAirs)
+            {
+                if (plane.X == x && plane.Y == y)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
         static void GetMoveParams(Plane plane)
         {
             RefreshScreen();
@@ -447,11 +472,11 @@ namespace Air_fight_simulator
                 if (ProgramHelpers.newY == -1)
                 {
                     RefreshScreen();
-                    WriteCentered("Row: ", ProgramHelpers.height + 5);
+                    WriteCentered("X: ", ProgramHelpers.height + 5);
                     ProgramHelpers.newY = int.Parse(Console.ReadLine());
                     ProgramHelpers.newY--;
                 }
-                if (!plane.PossibleMoveY.Contains(ProgramHelpers.newY))
+                if (!plane.PossibleMoveY.Contains(ProgramHelpers.newY) || CheckForCollision(ProgramHelpers.newX, ProgramHelpers.newY))
                 {
                     ProgramHelpers.newY = -1;
                     GetMoveParams(plane);
@@ -460,12 +485,12 @@ namespace Air_fight_simulator
                 if (ProgramHelpers.newX == -1)
                 {
                     RefreshScreen();
-                    WriteCentered("Column: ", ProgramHelpers.height + 5);
+                    WriteCentered("Y: ", ProgramHelpers.height + 5);
                     ProgramHelpers.newX = int.Parse(Console.ReadLine());
                     ProgramHelpers.newX--;
 
                 }
-                if (!plane.PossibleMoveX.Contains(ProgramHelpers.newX))
+                if (!plane.PossibleMoveX.Contains(ProgramHelpers.newX) || CheckForCollision(ProgramHelpers.newX, ProgramHelpers.newY))
                 {
                     ProgramHelpers.newX = -1;
                     GetMoveParams(plane);
