@@ -261,7 +261,7 @@ namespace Air_fight_simulator
                 if (ProgramHelpers.newY == -1)
                 {
                     RefreshScreen();
-                    WriteCentered("Target row: ", ProgramHelpers.height + 5);
+                    WriteCentered("Target Y: ", ProgramHelpers.height + 5);
                     ProgramHelpers.newY = int.Parse(Console.ReadLine());
                     ProgramHelpers.newY--;
                 }
@@ -274,7 +274,7 @@ namespace Air_fight_simulator
                 if (ProgramHelpers.newX == -1)
                 {
                     RefreshScreen();
-                    WriteCentered("Target column: ", ProgramHelpers.height + 5);
+                    WriteCentered("Target X: ", ProgramHelpers.height + 5);
                     ProgramHelpers.newX = int.Parse(Console.ReadLine());
                     ProgramHelpers.newX--;
 
@@ -472,7 +472,7 @@ namespace Air_fight_simulator
                 if (ProgramHelpers.newY == -1)
                 {
                     RefreshScreen();
-                    WriteCentered("X: ", ProgramHelpers.height + 5);
+                    WriteCentered("Y: ", ProgramHelpers.height + 5);
                     ProgramHelpers.newY = int.Parse(Console.ReadLine());
                     ProgramHelpers.newY--;
                 }
@@ -485,7 +485,7 @@ namespace Air_fight_simulator
                 if (ProgramHelpers.newX == -1)
                 {
                     RefreshScreen();
-                    WriteCentered("Y: ", ProgramHelpers.height + 5);
+                    WriteCentered("X: ", ProgramHelpers.height + 5);
                     ProgramHelpers.newX = int.Parse(Console.ReadLine());
                     ProgramHelpers.newX--;
 
@@ -776,13 +776,14 @@ namespace Air_fight_simulator
         static void ShowTutorial()
         {
             Console.Clear();
-            WriteCentered("Tutorial", 2);
+            WriteCentered("Tutorial!", 2);
             WriteCentered("Red is the attacker, Blue is the defender it has less powerful planes, but it has Anti-Air.", 4);
             WriteCentered("This is your plane: [↓]. Pay attention for your rotation it will influence your shooting direction.", 6);
             WriteCentered("This is an Anti-Air: [X]. Only the blue player has this. These are indestructible.", 8);
-            WriteCentered("The green tiles show where you can move or shoot", 10);
-            WriteCentered("The player who has no planes loses, Anti-Airs do not count", 12);
-            WriteCentered("Press a key to exit", 14);
+            WriteCentered("The green tiles show where you can move or shoot.", 10);
+            WriteCentered("The player who has no planes loses, Anti-Airs do not count.", 12);
+            WriteCentered("Y cords are on the left side, X cords are on the bottom.", 14);
+            WriteCentered("Press a key to exit", 20);
             Console.ReadLine();
             Console.Clear();
         }

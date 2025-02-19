@@ -102,7 +102,7 @@ namespace Air_fight_simulator
             {
                 switch (Rotation)
                 {
-                    case "top":
+                    case "up":
                         getCords(0, -1, i);
                         break;
                     case "right":
@@ -111,7 +111,7 @@ namespace Air_fight_simulator
                     case "left":
                         getCords(-1, 0, i);
                         break;
-                    case "bottom":
+                    case "down":
                         getCords(0, 1, i);
                         break;
                 }
