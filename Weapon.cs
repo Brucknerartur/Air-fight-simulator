@@ -26,6 +26,17 @@ namespace Air_fight_simulator
             Range = range;
         }
 
+        public Weapon(Weapon weaponTemplate) 
+        {
+            Name = weaponTemplate.Name;
+            Type = weaponTemplate.Type;
+            Ammo = weaponTemplate.Ammo;
+            Accuracy = weaponTemplate.Accuracy;
+            ATK = weaponTemplate.ATK;
+            DMG = weaponTemplate.DMG;
+            Range = weaponTemplate.Range;
+        }
+         
         public void UseAmmo(int amount)
         {
             Ammo -= amount;

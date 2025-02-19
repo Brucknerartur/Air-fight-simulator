@@ -27,7 +27,7 @@ namespace Air_fight_simulator
             }
             set
             {
-                if (value != "top" && value != "bottom" && value != "left" && value != "right")
+                if (value != "up" && value != "down" && value != "left" && value != "right")
                 {
                     throw new Exception("incorrect rotation");
                 }
