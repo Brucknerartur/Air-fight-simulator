@@ -13,7 +13,7 @@ namespace Air_fight_simulator
         public int HP { get; private set; }
         public string Name { get; private set; }
 
-        private string _rotation = "top";
+        private string _rotation = "up";
         public int X { get; private set; }
         public int Y { get; private set; }
         public int Speed { get; private set; }
@@ -57,7 +57,7 @@ namespace Air_fight_simulator
 
         public void ResetRotaion()
         {
-            Rotation = "top";
+            Rotation = "up";
         }
 
         public void Move(int x, int y, string newRotation)
